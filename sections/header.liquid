@@ -5,14 +5,15 @@
 
 <style>
   :root {
-    --header-bg: rgba(255, 255, 255, 0.8);
-    --header-text: #111;
-    --header-accent: #0d6efd;
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --header-text: #000;
+    --header-accent: #000;
+    --font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
   }
   [data-theme="dark"] {
-    --header-bg: rgba(18, 18, 18, 0.8);
-    --header-text: #f9f9f9;
-    --header-accent: #0d6efd;
+    --header-bg: rgba(0,0,0,0.9);
+    --header-text: #fff;
+    --header-accent: #fff;
   }
 
   .header-wrapper {
@@ -20,57 +21,99 @@
     background: var(--header-bg);
     border-bottom: 1px solid rgba(0,0,0,0.05);
     transition: all 0.3s ease-in-out;
+    font-family: var(--font-family);
   }
 
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 3rem;
+    padding: 14px 2rem;
     color: var(--header-text);
   }
 
   /* Sticky shrink */
   .scrolled-past-header .header {
-    padding: 8px 3rem !important;
+    padding: 8px 2rem !important;
   }
   .scrolled-past-header .header__heading-logo-wrapper {
     transform: scale(0.85);
     transition: transform 0.3s ease;
   }
 
-  /* Navigation */
-  .list-menu {
-    list-style: none;
-    display: flex;
-    gap: 2rem;
-    margin: 0;
-    padding: 0;
+  /* Desktop Nav */
+  .main-nav { display: none; }
+  @media(min-width: 991px) {
+    .main-nav { display: block; }
+    .list-menu {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      margin: 0;
+      padding: 0;
+    }
+    .list-menu__item--link {
+      font-weight: 500;
+      font-size: 1rem;
+      text-decoration: none;
+      color: var(--header-text);
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .list-menu__item--link:hover {
+      color: var(--header-accent);
+    }
+    .list-menu__item--link::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--header-accent);
+      transition: width 0.3s ease;
+    }
+    .list-menu__item--link:hover::after { width: 100%; }
   }
-  .list-menu__item--link {
-    font-weight: 500;
-    font-size: 0.95rem;
+
+  /* Mobile Drawer */
+  .menu-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    width: 25px;
+  }
+  .menu-toggle span {
+    height: 2px;
+    background: var(--header-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+  .drawer {
+    position: fixed;
+    top: 0; left: -100%;
+    width: 80%;
+    height: 100%;
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    padding: 2rem;
+    transition: left 0.4s ease;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .drawer.open { left: 0; }
+  .drawer a {
+    font-size: 1.1rem;
     text-decoration: none;
     color: var(--header-text);
-    position: relative;
+    font-weight: 500;
     transition: color 0.3s ease;
   }
-  .list-menu__item--link:hover {
-    color: var(--header-accent);
-  }
-  .list-menu__item--link::after {
-    content: "";
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    height: 2px;
-    width: 0%;
-    background: var(--header-accent);
-    transition: width 0.3s ease;
-  }
-  .list-menu__item--link:hover::after {
-    width: 100%;
-  }
+  .drawer a:hover { color: var(--header-accent); }
+  @media(min-width:991px){ .menu-toggle { display:none; } }
 
   /* Icons */
   .header__icons {
@@ -95,20 +138,25 @@
   .header__icons .header-search input {
     width: 0;
     opacity: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
     transition: width 0.4s ease, opacity 0.3s ease;
   }
   .header__icons .header-search input:focus {
-    width: 220px;
+    width: 200px;
     opacity: 1;
-  }
-
-  @media(max-width: 750px) {
-    .header { padding: 12px 1.5rem; }
-    .list-menu { gap: 1rem; }
   }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    const toggle = document.querySelector(".menu-toggle");
+    const drawer = document.querySelector(".drawer");
+    toggle?.addEventListener("click", ()=> drawer.classList.toggle("open"));
+  });
+</script>
 
 {% liquid
   assign header_tag = 'div'
@@ -136,29 +184,30 @@
       {% endif %}
     </a>
 
-    <!-- Menu -->
+    <!-- Desktop Nav -->
     {% if section.settings.menu != blank %}
       <nav class="main-nav">
         <ul class="list-menu">
           {% for link in linklists[section.settings.menu].links %}
-            <li>
-              <a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a>
-            </li>
+            <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
           {% endfor %}
         </ul>
       </nav>
     {% endif %}
 
+    <!-- Mobile Toggle -->
+    <div class="menu-toggle">
+      <span></span><span></span><span></span>
+    </div>
+
     <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
-
       {% if shop.customer_accounts_enabled %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-
       <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
         <span class="svg-wrapper">
           {% if cart == empty %}
@@ -173,11 +222,20 @@
       </a>
     </div>
   </header>
+
+  <!-- Drawer Menu -->
+  <div class="drawer">
+    {% if section.settings.menu != blank %}
+      {% for link in linklists[section.settings.menu].links %}
+        <a href="{{ link.url }}">{{ link.title }}</a>
+      {% endfor %}
+    {% endif %}
+  </div>
 </{{ header_tag }}>
 
 {% schema %}
 {
-  "name": "Advanced Modern Header",
+  "name": "header",
   "class": "section-header",
   "settings": [
     {
@@ -191,16 +249,6 @@
       ],
       "default": "middle-left",
       "label": "Logo position"
-    },
-    {
-      "type": "select",
-      "id": "mobile_logo_position",
-      "options": [
-        { "value": "center", "label": "Center" },
-        { "value": "left", "label": "Left" }
-      ],
-      "default": "center",
-      "label": "Mobile logo position"
     },
     {
       "type": "link_list",
@@ -219,12 +267,6 @@
       ],
       "default": "on-scroll-up",
       "label": "Sticky header type"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_line_separator",
-      "default": true,
-      "label": "Show line separator"
     },
     {
       "type": "color_scheme",
