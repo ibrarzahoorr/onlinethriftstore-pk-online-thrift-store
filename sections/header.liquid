@@ -7,51 +7,20 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+{%- if section.settings.menu_type_desktop == 'mega' -%}
+  <link rel="stylesheet" href="{{ 'component-mega-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
 
 <style>
-  body, .header, .list-menu, .menu-banner, .header__icons, .header__heading-link {
-    font-family: 'Poppins', sans-serif !important;
-    font-size: 16px !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.4px;
-    color: #111 !important;
-  }
-
-  .header, .page-width {
-    max-width: 100% !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  .list-menu, .list-menu li {
-    list-style: none !important;
-    margin: 0;
-    padding: 0;
-  }
-
-  .menu-banner {
-    margin-top: 0.5rem;
-    text-align: center;
-  }
-  .menu-banner img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #000;
-    transition: transform 0.3s ease;
-  }
-  .menu-banner img:hover { transform: scale(1.1); }
-
   /* Logo alignment */
-  .header-logo-left { text-align: left; }
-  .header-logo-center { text-align: center; margin: 0 auto; }
-  .header-logo-right { text-align: right; margin-left: auto; }
+  .header-logo-left { justify-content: flex-start; }
+  .header-logo-center { justify-content: center; }
+  .header-logo-right { justify-content: flex-end; }
 
-  /* Desktop menu expand */
-  .desktop-menu.expanded ul { display: block !important; }
+  .header__heading {
+    display: flex;
+    align-items: center;
+  }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
@@ -67,38 +36,35 @@
   {% if header_tag == 'sticky-header' %}
     data-sticky-type="{{ section.settings.sticky_header_type }}"
   {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }}{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
+  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
   <header 
-    class="header 
-    header-logo-{{ section.settings.logo_alignment }} 
-    page-width
+    class="header page-width header-logo-{{ section.settings.logo_alignment }}
     {% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}
-    {% if section.settings.menu != blank %} header--has-menu{% endif %}
-  ">
+    {% if section.settings.menu != blank %} header--has-menu{% endif %}">
     
+    <!-- Menu -->
     {%- if section.settings.menu != blank -%}
-      {% if section.settings.menu_location == "drawer" %}
-        {% render 'header-drawer' %}
-      {% else %}
-        {% render 'header-menu' %}
-      {% endif %}
+      {% case section.settings.menu_type_desktop %}
+        {% when 'drawer' %}
+          {% render 'header-drawer' %}
+        {% when 'dropdown' %}
+          {% render 'header-dropdown-menu' %}
+        {% when 'mega' %}
+          {% render 'header-mega-menu' %}
+      {% endcase %}
     {%- endif -%}
 
     <!-- Logo -->
-    <div class="header__heading header-logo-{{ section.settings.logo_alignment }}">
+    <div class="header__heading">
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {% if section.settings.logo_image != blank %}
-          <div class="header__heading-logo-wrapper">
-            {{ section.settings.logo_image | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-          </div>
-        {% elsif settings.logo != blank %}
+        {%- if settings.logo != blank -%}
           <div class="header__heading-logo-wrapper">
             {{ settings.logo | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
           </div>
-        {% else %}
+        {%- else -%}
           <span class="h2">{{ shop.name }}</span>
-        {% endif %}
+        {%- endif -%}
       </a>
     </div>
 
@@ -139,33 +105,11 @@
   -%}
 {%- endif -%}
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    function toCamelCase(str) {
-      return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-    }
-    const elements = document.querySelectorAll(
-      ".list-menu li, .list-menu li a, .header__heading-link, .menu-banner, .header__icons, .header__heading"
-    );
-    elements.forEach(el => {
-      if (el.innerText && el.innerText.trim() !== "") {
-        el.innerText = toCamelCase(el.innerText);
-      }
-    });
-  });
-</script>
-
 {% schema %}
 {
   "name": "Advanced Header",
   "class": "section-header",
   "settings": [
-    {
-      "type": "image_picker",
-      "id": "logo_image",
-      "label": "Custom Logo",
-      "info": "Upload or choose a logo for the header"
-    },
     {
       "type": "link_list",
       "id": "menu",
@@ -185,16 +129,6 @@
     },
     {
       "type": "select",
-      "id": "menu_location",
-      "options": [
-        { "value": "header", "label": "Header" },
-        { "value": "drawer", "label": "Drawer" }
-      ],
-      "default": "header",
-      "label": "Menu Location"
-    },
-    {
-      "type": "select",
       "id": "logo_alignment",
       "options": [
         { "value": "left", "label": "Left" },
@@ -203,12 +137,6 @@
       ],
       "default": "left",
       "label": "Logo Alignment"
-    },
-    {
-      "type": "checkbox",
-      "id": "expand_menu_desktop",
-      "label": "Expand Menu by Default (Desktop)",
-      "default": false
     },
     {
       "type": "checkbox",
@@ -241,33 +169,16 @@
       "label": "Sticky header type"
     },
     {
+      "type": "checkbox",
+      "id": "show_line_separator",
+      "default": true,
+      "label": "Show line separator"
+    },
+    {
       "type": "color_scheme",
       "id": "color_scheme",
       "default": "scheme-1",
       "label": "Color scheme"
-    }
-  ],
-  "blocks": [
-    {
-      "type": "collection_banner",
-      "name": "Collection Banner",
-      "settings": [
-        {
-          "type": "text",
-          "id": "menu_item",
-          "label": "Menu Item Name (exact match)"
-        },
-        {
-          "type": "image_picker",
-          "id": "image",
-          "label": "Banner Image"
-        },
-        {
-          "type": "text",
-          "id": "alt",
-          "label": "Image Alt Text"
-        }
-      ]
     }
   ]
 }
