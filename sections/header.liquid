@@ -7,17 +7,15 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts for Modern Look -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-
 <style>
-  /* Modern Elegant Typography */
+  /* Modern Elegant Font */
   body, .header, .list-menu, .menu-banner, .header__icons, .header__heading-link {
-    font-family: 'Poppins', sans-serif !important;
+    font-family: 'Poppins', 'Inter', 'Roboto', sans-serif !important;
     font-size: 16px !important;
     font-weight: 500 !important;
-    letter-spacing: 0.4px;
-    color: #111 !important;
+    letter-spacing: 0.5px;
+    text-transform: capitalize; /* Hamesha Aise: "Asdf Mnb" */
+    color: #111 !important; /* Modern dark shade */
   }
 
   /* Full width header - no margins */
@@ -52,30 +50,6 @@
     transform: scale(1.1);
   }
 </style>
-
-<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
-
-<script>
-  // ✅ Force CamelCase for all texts inside header & menus
-  document.addEventListener("DOMContentLoaded", function () {
-    function toCamelCase(str) {
-      return str
-        .toLowerCase()
-        .replace(/\b\w/g, function (char) { return char.toUpperCase(); });
-    }
-
-    // Target all text nodes inside menu + header
-    const elements = document.querySelectorAll(
-      ".list-menu li, .header__heading-link, .menu-banner, .header__icons, .header__heading"
-    );
-
-    elements.forEach(el => {
-      if (el.innerText.trim() !== "") {
-        el.innerText = toCamelCase(el.innerText);
-      }
-    });
-  });
-</script>
 
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
