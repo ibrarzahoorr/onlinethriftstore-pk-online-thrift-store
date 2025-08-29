@@ -75,26 +75,6 @@
       </a>
     </div>
 
-    <!-- Desktop Menu (custom, no duplicates) -->
-    {% if section.settings.menu != blank and section.settings.menu_type_desktop != 'drawer' %}
-      <nav class="main-nav small-hide medium-hide">
-        <ul class="list-menu">
-          {% for link in linklists[section.settings.menu].links %}
-            <li class="list-menu__item">
-              <a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a>
-
-              {%- for block in section.blocks -%}
-                {%- if block.type == 'collection_banner' and block.settings.menu_item == link.title -%}
-                  <div class="menu-banner">
-                    <img src="{{ block.settings.image | img_url: '200x200' }}" alt="{{ block.settings.alt | escape }}">
-                  </div>
-                {%- endif -%}
-              {%- endfor -%}
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
-    {% endif %}
 
     <!-- Icons -->
     <div class="header__icons">
