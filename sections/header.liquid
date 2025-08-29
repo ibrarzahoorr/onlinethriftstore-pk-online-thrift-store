@@ -25,13 +25,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 1rem;
+    padding: 14px 2rem;
     color: var(--header-text);
   }
 
   /* Sticky shrink */
   .scrolled-past-header .header {
-    padding: 8px 1rem !important;
+    padding: 8px 2rem !important;
   }
   .scrolled-past-header .header__heading-logo-wrapper {
     transform: scale(0.85);
@@ -73,67 +73,79 @@
     .list-menu__item--link:hover::after { width: 100%; }
   }
 
-  /* Mobile Layout */
-  .menu-toggle {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    cursor: pointer;
-    width: 25px;
-  }
-  .menu-toggle span {
-    height: 2px;
-    background: var(--header-text);
-    border-radius: 2px;
-    transition: all 0.3s ease;
-  }
-  @media(min-width:991px){ .menu-toggle { display:none; } }
+  /* ===== MOBILE HEADER FIX ===== */
+  @media(max-width: 990px) {
+    .main-nav { display: none !important; }
 
-  .header__logo-mobile {
-    flex: 1;
-    text-align: center;
-  }
+    .header-mobile {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 12px 1rem;
+    }
 
-  /* Drawer + Overlay */
-  .drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 9998;
-  }
-  .drawer-overlay.active {
-    opacity: 1;
-    visibility: visible;
-  }
-  .drawer {
-    position: fixed;
-    top: 0; left: -100%;
-    width: 80%;
-    height: 100%;
-    background: #fff;
-    padding: 2rem 1.5rem;
-    transition: left 0.4s ease;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  .drawer.open { left: 0; }
-  .drawer a {
-    font-size: 1.1rem;
-    text-decoration: none;
-    color: #000;
-    font-weight: 500;
-    transition: color 0.3s ease;
-  }
-  .drawer a:hover { color: var(--header-accent); }
-  .drawer-close {
-    align-self: flex-end;
-    font-size: 1.5rem;
-    cursor: pointer;
+    .menu-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      width: 25px;
+    }
+    .menu-toggle span {
+      height: 2px;
+      background: var(--header-text);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .header__logo-mobile {
+      flex: 1;
+      text-align: center;
+    }
+
+    /* Drawer + Overlay */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 9998;
+    }
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .drawer {
+      position: fixed;
+      top: 0; left: -100%;
+      width: 80%;
+      height: 100%;
+      background: #fff;
+      padding: 2rem 1.5rem;
+      transition: left 0.4s ease;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .drawer.open { left: 0; }
+    .drawer a {
+      font-size: 1.1rem;
+      text-decoration: none;
+      color: #000;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    .drawer a:hover { color: var(--header-accent); }
+    .drawer-close {
+      align-self: flex-end;
+      font-size: 1.5rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
   }
 
   /* Icons */
@@ -203,25 +215,31 @@
   {% endif %}
   class="header-wrapper color-{{ section.settings.color_scheme }}"
 >
-  <header class="header header--mobile-{{ section.settings.mobile_logo_position }}">
-    
-    <!-- Mobile Left: Menu -->
-    <div class="menu-toggle">
-      <span></span><span></span><span></span>
-    </div>
+  <!-- === Desktop Header === -->
+  <header class="header large-show">
+    <!-- Logo -->
+    <a href="{{ routes.root_url }}" class="header__heading-link">
+      {% if settings.logo != blank %}
+        <div class="header__heading-logo-wrapper">
+          {{ settings.logo | image_url: width: 400 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+        </div>
+      {% else %}
+        <span class="h2">{{ shop.name }}</span>
+      {% endif %}
+    </a>
 
-    <!-- Logo Center -->
-    <div class="header__logo-mobile">
-      <a href="{{ routes.root_url }}">
-        {% if settings.logo != blank %}
-          {{ settings.logo | image_url: width: 180 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-        {% else %}
-          <span class="h2">{{ shop.name }}</span>
-        {% endif %}
-      </a>
-    </div>
+    <!-- Menu -->
+    {% if section.settings.menu != blank %}
+      <nav class="main-nav">
+        <ul class="list-menu">
+          {% for link in linklists[section.settings.menu].links %}
+            <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
 
-    <!-- Icons Right -->
+    <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
       {% if shop.customer_accounts_enabled %}
@@ -244,16 +262,46 @@
     </div>
   </header>
 
-  <!-- Desktop Menu -->
-  {% if section.settings.menu != blank %}
-    <nav class="main-nav">
-      <ul class="list-menu">
-        {% for link in linklists[section.settings.menu].links %}
-          <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
-        {% endfor %}
-      </ul>
-    </nav>
-  {% endif %}
+  <!-- === Mobile Header === -->
+  <div class="header-mobile small-show medium-show">
+    <!-- Left: Hamburger -->
+    <div class="menu-toggle">
+      <span></span><span></span><span></span>
+    </div>
+
+    <!-- Center: Logo -->
+    <div class="header__logo-mobile">
+      <a href="{{ routes.root_url }}">
+        {% if settings.logo != blank %}
+          {{ settings.logo | image_url: width: 160 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+        {% else %}
+          <span class="h2">{{ shop.name }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <!-- Right: Icons -->
+    <div class="header__icons">
+      {% render 'header-search', input_id: 'Search-In-Modal-Mobile' %}
+      {% if shop.customer_accounts_enabled %}
+        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon">
+          <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
+        </a>
+      {% endif %}
+      <a href="{{ routes.cart_url }}" class="header__icon" id="cart-icon-bubble-mobile">
+        <span class="svg-wrapper">
+          {% if cart == empty %}
+            {{ 'icon-cart-empty.svg' | inline_asset_content }}
+          {% else %}
+            {{ 'icon-cart.svg' | inline_asset_content }}
+          {% endif %}
+        </span>
+        {% if cart != empty %}
+          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
+        {% endif %}
+      </a>
+    </div>
+  </div>
 
   <!-- Mobile Drawer -->
   <div class="drawer">
@@ -269,7 +317,7 @@
 
 {% schema %}
 {
-  "name": "Header",
+  "name": "Advanced Header",
   "class": "section-header",
   "settings": [
     {
