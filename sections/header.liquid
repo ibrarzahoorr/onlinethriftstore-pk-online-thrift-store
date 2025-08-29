@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts for Modern Elegant Look -->
+<!-- Google Fonts for Modern Look -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -56,26 +56,21 @@
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
 <script>
-  // ✅ Force CamelCase for ALL menu/header texts
+  // ✅ Force CamelCase for all texts inside header & menus
   document.addEventListener("DOMContentLoaded", function () {
     function toCamelCase(str) {
       return str
         .toLowerCase()
-        .replace(/\b\w/g, char => char.toUpperCase());
+        .replace(/\b\w/g, function (char) { return char.toUpperCase(); });
     }
 
-    // Target ALL visible text in menu, header, navigation
-    const selectors = [
-      ".list-menu li a",
-      ".list-menu li span",
-      ".header__heading-link",
-      ".menu-banner",
-      ".header__icons",
-      ".header__heading"
-    ];
+    // Target all text nodes inside menu + header
+    const elements = document.querySelectorAll(
+      ".list-menu li, .header__heading-link, .menu-banner, .header__icons, .header__heading"
+    );
 
-    document.querySelectorAll(selectors.join(",")).forEach(el => {
-      if (el.innerText && el.innerText.trim() !== "") {
+    elements.forEach(el => {
+      if (el.innerText.trim() !== "") {
         el.innerText = toCamelCase(el.innerText);
       }
     });
