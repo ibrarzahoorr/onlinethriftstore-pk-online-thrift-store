@@ -12,69 +12,38 @@
 {%- endif -%}
 
 <style>
-  /* --- Original Dawn header styles stay same --- */
+  /* Full width header - no margins */
+  .header, .page-width {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 
-  /* === Mobile Header Fix === */
-  @media(max-width: 990px) {
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  /* Remove menu dots */
+  .list-menu,
+  .list-menu li {
+    list-style: none !important;
+  }
 
-    /* Make logo center */
-    .header__heading {
-      flex: 1;
-      text-align: center;
-    }
-    .header__heading-link {
-      display: inline-block;
-    }
-
-    /* Drawer trigger (hamburger) left */
-    header-drawer {
-      order: -1;
-    }
-
-    /* Icons on right */
-    .header__icons {
-      display: flex;
-      gap: 0.8rem;
-    }
-
-    /* Drawer overlay */
-    .menu-drawer__overlay {
-      background: rgba(0,0,0,0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease;
-    }
-    .menu-drawer[open] ~ .menu-drawer__overlay {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    /* Drawer close button style */
-    .menu-drawer__close-button {
-      font-size: 1.4rem;
-      font-weight: bold;
-      border: none;
-      background: none;
-      cursor: pointer;
-      margin-bottom: 1rem;
-    }
+  /* Collection banner images under menu */
+  .menu-banner {
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+  .menu-banner img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #000;
+    transition: transform 0.3s ease;
+  }
+  .menu-banner img:hover {
+    transform: scale(1.1);
   }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
-
-{%- liquid
-  for block in section.blocks
-    if block.type == '@app'
-      assign has_app_block = true
-    endif
-  endfor
--%}
 
 {% liquid
   assign header_tag = 'div'
@@ -89,7 +58,7 @@
   {% endif %}
   class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
-  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}{% if has_app_block %} header--has-app{% endif %}{% if shop.customer_accounts_enabled %} header--has-account{% endif %}">
+  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
     
     {%- if section.settings.menu != blank -%}
       {% render 'header-drawer' %}
@@ -107,6 +76,27 @@
         {% endif %}
       </a>
     </div>
+
+    <!-- Menu with banners -->
+    {% if section.settings.menu != blank %}
+      <nav class="main-nav">
+        <ul class="list-menu">
+          {% for link in linklists[section.settings.menu].links %}
+            <li class="list-menu__item">
+              <a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a>
+
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'collection_banner' and block.settings.menu_item == link.title -%}
+                  <div class="menu-banner">
+                    <img src="{{ block.settings.image | img_url: '200x200' }}" alt="{{ block.settings.alt | escape }}">
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
 
     <!-- Icons -->
     <div class="header__icons">
@@ -131,7 +121,6 @@
     </div>
   </header>
 </{{ header_tag }}>
-
 
 {% schema %}
 {
@@ -161,6 +150,29 @@
       "id": "color_scheme",
       "default": "scheme-1",
       "label": "Color scheme"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection_banner",
+      "name": "Collection Banner",
+      "settings": [
+        {
+          "type": "text",
+          "id": "menu_item",
+          "label": "Menu Item Name (must match exactly)"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Banner Image"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Image Alt Text"
+        }
+      ]
     }
   ]
 }
