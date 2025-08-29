@@ -5,15 +5,10 @@
 
 <style>
   :root {
-    --header-bg: rgba(255, 255, 255, 0.9);
+    --header-bg: rgba(255, 255, 255, 0.95);
     --header-text: #000;
     --header-accent: #000;
     --font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
-  }
-  [data-theme="dark"] {
-    --header-bg: rgba(0,0,0,0.9);
-    --header-text: #fff;
-    --header-accent: #fff;
   }
 
   .header-wrapper {
@@ -22,19 +17,21 @@
     border-bottom: 1px solid rgba(0,0,0,0.05);
     transition: all 0.3s ease-in-out;
     font-family: var(--font-family);
+    position: relative;
+    z-index: 1000;
   }
 
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 2rem;
+    padding: 14px 1rem;
     color: var(--header-text);
   }
 
   /* Sticky shrink */
   .scrolled-past-header .header {
-    padding: 8px 2rem !important;
+    padding: 8px 1rem !important;
   }
   .scrolled-past-header .header__heading-logo-wrapper {
     transform: scale(0.85);
@@ -76,7 +73,7 @@
     .list-menu__item--link:hover::after { width: 100%; }
   }
 
-  /* Mobile Drawer */
+  /* Mobile Layout */
   .menu-toggle {
     display: flex;
     flex-direction: column;
@@ -90,14 +87,34 @@
     border-radius: 2px;
     transition: all 0.3s ease;
   }
+  @media(min-width:991px){ .menu-toggle { display:none; } }
+
+  .header__logo-mobile {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Drawer + Overlay */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 9998;
+  }
+  .drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
   .drawer {
     position: fixed;
     top: 0; left: -100%;
     width: 80%;
     height: 100%;
-    background: var(--header-bg);
-    backdrop-filter: blur(12px);
-    padding: 2rem;
+    background: #fff;
+    padding: 2rem 1.5rem;
     transition: left 0.4s ease;
     z-index: 9999;
     display: flex;
@@ -108,18 +125,22 @@
   .drawer a {
     font-size: 1.1rem;
     text-decoration: none;
-    color: var(--header-text);
+    color: #000;
     font-weight: 500;
     transition: color 0.3s ease;
   }
   .drawer a:hover { color: var(--header-accent); }
-  @media(min-width:991px){ .menu-toggle { display:none; } }
+  .drawer-close {
+    align-self: flex-end;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
 
   /* Icons */
   .header__icons {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.8rem;
   }
   .header__icon {
     border-radius: 50%;
@@ -144,17 +165,28 @@
     transition: width 0.4s ease, opacity 0.3s ease;
   }
   .header__icons .header-search input:focus {
-    width: 200px;
+    width: 160px;
     opacity: 1;
   }
 </style>
 
-<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function(){
     const toggle = document.querySelector(".menu-toggle");
     const drawer = document.querySelector(".drawer");
-    toggle?.addEventListener("click", ()=> drawer.classList.toggle("open"));
+    const overlay = document.querySelector(".drawer-overlay");
+    const closeBtn = document.querySelector(".drawer-close");
+
+    function closeDrawer() {
+      drawer.classList.remove("open");
+      overlay.classList.remove("active");
+    }
+    toggle?.addEventListener("click", ()=>{
+      drawer.classList.add("open");
+      overlay.classList.add("active");
+    });
+    closeBtn?.addEventListener("click", closeDrawer);
+    overlay?.addEventListener("click", closeDrawer);
   });
 </script>
 
@@ -171,44 +203,33 @@
   {% endif %}
   class="header-wrapper color-{{ section.settings.color_scheme }}"
 >
-  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }}">
+  <header class="header header--mobile-{{ section.settings.mobile_logo_position }}">
     
-    <!-- Logo -->
-    <a href="{{ routes.root_url }}" class="header__heading-link">
-      {% if settings.logo != blank %}
-        <div class="header__heading-logo-wrapper">
-          {{ settings.logo | image_url: width: 400 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-        </div>
-      {% else %}
-        <span class="h2">{{ shop.name }}</span>
-      {% endif %}
-    </a>
-
-    <!-- Desktop Nav -->
-    {% if section.settings.menu != blank %}
-      <nav class="main-nav">
-        <ul class="list-menu">
-          {% for link in linklists[section.settings.menu].links %}
-            <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
-          {% endfor %}
-        </ul>
-      </nav>
-    {% endif %}
-
-    <!-- Mobile Toggle -->
+    <!-- Mobile Left: Menu -->
     <div class="menu-toggle">
       <span></span><span></span><span></span>
     </div>
 
-    <!-- Icons -->
+    <!-- Logo Center -->
+    <div class="header__logo-mobile">
+      <a href="{{ routes.root_url }}">
+        {% if settings.logo != blank %}
+          {{ settings.logo | image_url: width: 180 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+        {% else %}
+          <span class="h2">{{ shop.name }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <!-- Icons Right -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
       {% if shop.customer_accounts_enabled %}
-        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
+        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
+      <a href="{{ routes.cart_url }}" class="header__icon" id="cart-icon-bubble">
         <span class="svg-wrapper">
           {% if cart == empty %}
             {{ 'icon-cart-empty.svg' | inline_asset_content }}
@@ -223,33 +244,34 @@
     </div>
   </header>
 
-  <!-- Drawer Menu -->
+  <!-- Desktop Menu -->
+  {% if section.settings.menu != blank %}
+    <nav class="main-nav">
+      <ul class="list-menu">
+        {% for link in linklists[section.settings.menu].links %}
+          <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  <!-- Mobile Drawer -->
   <div class="drawer">
+    <div class="drawer-close">✕</div>
     {% if section.settings.menu != blank %}
       {% for link in linklists[section.settings.menu].links %}
         <a href="{{ link.url }}">{{ link.title }}</a>
       {% endfor %}
     {% endif %}
   </div>
+  <div class="drawer-overlay"></div>
 </{{ header_tag }}>
 
 {% schema %}
 {
-  "name": "header",
+  "name": "Header",
   "class": "section-header",
   "settings": [
-    {
-      "type": "select",
-      "id": "logo_position",
-      "options": [
-        { "value": "top-left", "label": "Logo Top Left" },
-        { "value": "top-center", "label": "Logo Top Center" },
-        { "value": "middle-left", "label": "Logo Middle Left" },
-        { "value": "middle-center", "label": "Logo Middle Center" }
-      ],
-      "default": "middle-left",
-      "label": "Logo position"
-    },
     {
       "type": "link_list",
       "id": "menu",
