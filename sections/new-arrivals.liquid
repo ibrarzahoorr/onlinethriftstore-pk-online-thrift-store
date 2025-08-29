@@ -1,0 +1,151 @@
+{% comment %}
+  Section: New Arrivals
+  Displays a grid of products with images, titles, and prices
+{% endcomment %}
+
+<section class="new-arrivals">
+  <div class="page-width">
+    {% if section.settings.heading != blank %}
+      <h2 class="section-title">{{ section.settings.heading }}</h2>
+    {% endif %}
+
+    <div class="new-arrivals-grid">
+      {% assign collection = collections[section.settings.collection] %}
+      {% if collection != blank %}
+        {% for product in collection.products limit: section.settings.products_limit %}
+          <div class="product-card">
+            <a href="{{ product.url }}" class="product-link">
+              <div class="product-image">
+                <img src="{{ product.featured_image | img_url: '400x400' }}" alt="{{ product.title }}">
+                {% if section.settings.show_badge %}
+                  <span class="tag">New</span>
+                {% endif %}
+              </div>
+              <div class="product-info">
+                <h3 class="product-title">{{ product.title }}</h3>
+                <p class="product-price">
+                  {% if product.compare_at_price > product.price %}
+                    <span class="sale-price">{{ product.price | money }}</span>
+                    <span class="compare-price">{{ product.compare_at_price | money }}</span>
+                  {% else %}
+                    <span>{{ product.price | money }}</span>
+                  {% endif %}
+                </p>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No products found.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<style>
+.new-arrivals {
+  background: #f9f9f9;
+  padding: 40px 20px;
+}
+.section-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+.new-arrivals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+}
+.product-image {
+  position: relative;
+  text-align: center;
+}
+.product-image img {
+  width: 100%;
+  border-radius: 12px;
+}
+.product-image .tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: black;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+.product-info {
+  text-align: center;
+  margin-top: 10px;
+}
+.product-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.product-price {
+  font-size: 15px;
+  color: #333;
+}
+.product-price .compare-price {
+  text-decoration: line-through;
+  margin-left: 6px;
+  font-size: 13px;
+  color: #999;
+}
+.sale-price {
+  color: #d32f2f;
+  font-weight: bold;
+}
+</style>
+
+{% schema %}
+{
+  "name": "New Arrivals",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Heading",
+      "default": "New Arrivals"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Number of Products",
+      "min": 2,
+      "max": 12,
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show 'New' Badge",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "New Arrivals",
+      "category": "Products"
+    }
+  ]
+}
+{% endschema %}
