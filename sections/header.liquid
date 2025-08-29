@@ -7,11 +7,10 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts for Modern Look -->
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-  /* Modern Elegant Typography */
   body, .header, .list-menu, .menu-banner, .header__icons, .header__heading-link {
     font-family: 'Poppins', sans-serif !important;
     font-size: 16px !important;
@@ -20,22 +19,18 @@
     color: #111 !important;
   }
 
-  /* Full width header - no margins */
   .header, .page-width {
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
-  /* Remove menu dots */
-  .list-menu,
-  .list-menu li {
+  .list-menu, .list-menu li {
     list-style: none !important;
     margin: 0;
     padding: 0;
   }
 
-  /* Collection banner images under menu */
   .menu-banner {
     margin-top: 0.5rem;
     text-align: center;
@@ -48,9 +43,15 @@
     border: 2px solid #000;
     transition: transform 0.3s ease;
   }
-  .menu-banner img:hover {
-    transform: scale(1.1);
-  }
+  .menu-banner img:hover { transform: scale(1.1); }
+
+  /* Logo alignment */
+  .header-logo-left { text-align: left; }
+  .header-logo-center { text-align: center; margin: 0 auto; }
+  .header-logo-right { text-align: right; margin-left: auto; }
+
+  /* Desktop menu expand */
+  .desktop-menu.expanded ul { display: block !important; }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
@@ -71,11 +72,15 @@
   <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
     
     {%- if section.settings.menu != blank -%}
-      {% render 'header-drawer' %}
+      {% if section.settings.menu_location == "drawer" %}
+        {% render 'header-drawer' %}
+      {% else %}
+        {% render 'header-menu' %}
+      {% endif %}
     {%- endif -%}
 
     <!-- Logo -->
-    <div class="header__heading">
+    <div class="header__heading header-logo-{{ section.settings.logo_alignment }}">
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
         {% if section.settings.logo_image != blank %}
           <div class="header__heading-logo-wrapper">
@@ -93,24 +98,30 @@
 
     <!-- Icons -->
     <div class="header__icons">
-      {% render 'header-search', input_id: 'Search-In-Modal' %}
-      {% if shop.customer_accounts_enabled %}
+      {% if section.settings.show_search_icon %}
+        {% render 'header-search', input_id: 'Search-In-Modal' %}
+      {% endif %}
+
+      {% if section.settings.show_account_icon and shop.customer_accounts_enabled %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
-        <span class="svg-wrapper">
-          {% if cart == empty %}
-            {{ 'icon-cart-empty.svg' | inline_asset_content }}
-          {% else %}
-            {{ 'icon-cart.svg' | inline_asset_content }}
+
+      {% if section.settings.show_cart_icon %}
+        <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
+          <span class="svg-wrapper">
+            {% if cart == empty %}
+              {{ 'icon-cart-empty.svg' | inline_asset_content }}
+            {% else %}
+              {{ 'icon-cart.svg' | inline_asset_content }}
+            {% endif %}
+          </span>
+          {% if cart != empty %}
+            <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
           {% endif %}
-        </span>
-        {% if cart != empty %}
-          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
-        {% endif %}
-      </a>
+        </a>
+      {% endif %}
     </div>
   </header>
 </{{ header_tag }}>
@@ -122,19 +133,14 @@
   -%}
 {%- endif -%}
 
-<!-- ✅ Force CamelCase Script -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     function toCamelCase(str) {
-      return str
-        .toLowerCase()
-        .replace(/\b\w/g, char => char.toUpperCase());
+      return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
     }
-
     const elements = document.querySelectorAll(
       ".list-menu li, .list-menu li a, .header__heading-link, .menu-banner, .header__icons, .header__heading"
     );
-
     elements.forEach(el => {
       if (el.innerText && el.innerText.trim() !== "") {
         el.innerText = toCamelCase(el.innerText);
@@ -170,6 +176,51 @@
       ],
       "default": "dropdown",
       "label": "Desktop menu type"
+    },
+    {
+      "type": "select",
+      "id": "menu_location",
+      "options": [
+        { "value": "header", "label": "Header" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "header",
+      "label": "Menu Location"
+    },
+    {
+      "type": "select",
+      "id": "logo_alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left",
+      "label": "Logo Alignment"
+    },
+    {
+      "type": "checkbox",
+      "id": "expand_menu_desktop",
+      "label": "Expand Menu by Default (Desktop)",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search_icon",
+      "label": "Show Search Icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account_icon",
+      "label": "Show Account Icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_icon",
+      "label": "Show Cart Icon",
+      "default": true
     },
     {
       "type": "select",
