@@ -1,5 +1,5 @@
 {% comment %}
-  Section: New Arrivals with Quick View
+  Section: New Arrivals with Sale Badge + Quick View
 {% endcomment %}
 
 <section class="new-arrivals">
@@ -13,26 +13,32 @@
       {% if collection != blank %}
         {% for product in collection.products limit: section.settings.products_limit %}
           <div class="product-card">
-            <a href="{{ product.url }}" class="product-link">
-              <div class="product-image">
-                <img 
-                  src="{{ product.featured_image | img_url: '400x400', crop: 'center' }}" 
-                  alt="{{ product.title }}"
-                  class="fixed-image"
-                >
-                {% if section.settings.show_badge %}
-                  <span class="tag">New</span>
-                {% endif %}
+            <div class="product-image">
+              <img 
+                src="{{ product.featured_image | img_url: '400x400', crop: 'center' }}" 
+                alt="{{ product.title }}"
+                class="fixed-image"
+              >
 
-                <!-- Quick View Arrow -->
-                <button 
-                  type="button" 
-                  class="quick-view-btn" 
-                  data-product-handle="{{ product.handle }}">
-                  ➚
-                </button>
-              </div>
-            </a>
+              <!-- Sale badge (toggleable) -->
+              {% if section.settings.show_sale_badge and product.compare_at_price > product.price %}
+                <span class="sale-badge">Sale</span>
+              {% endif %}
+
+              <!-- New badge -->
+              {% if section.settings.show_badge %}
+                <span class="tag">New</span>
+              {% endif %}
+
+              <!-- Quick View Arrow under New badge -->
+              <button 
+                type="button" 
+                class="quick-view-btn" 
+                data-product-handle="{{ product.handle }}">
+                ➚
+              </button>
+            </div>
+
             <div class="product-info">
               <h3 class="product-title">{{ product.title }}</h3>
               <p class="product-price">
@@ -44,12 +50,10 @@
                 {% endif %}
               </p>
 
-              <!-- Add to Cart Form -->
+              <!-- Add to Cart -->
               <form method="post" action="/cart/add" class="add-to-cart-form">
                 <input type="hidden" name="id" value="{{ product.variants.first.id }}">
-                <button type="submit" class="add-to-cart-btn">
-                  Add to Cart
-                </button>
+                <button type="submit" class="add-to-cart-btn">Add to Cart</button>
               </form>
             </div>
           </div>
@@ -61,7 +65,7 @@
   </div>
 </section>
 
-<!-- Popup Modal -->
+<!-- Quick View Modal -->
 <div id="quickViewModal" class="quick-view-modal">
   <div class="quick-view-content">
     <span class="close-modal">&times;</span>
@@ -69,6 +73,7 @@
       <img id="qv-image" src="" alt="Product Image">
       <h3 id="qv-title"></h3>
       <p id="qv-price"></p>
+      <div id="qv-description"></div>
       <form method="post" action="/cart/add" id="qv-form">
         <input type="hidden" name="id" id="qv-variant-id">
         <button type="submit" class="add-to-cart-btn">Add to Cart</button>
@@ -101,7 +106,6 @@
   transition: transform 0.2s ease;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 .product-card:hover {
   transform: translateY(-4px);
@@ -116,20 +120,32 @@
   object-fit: cover;
   border-radius: 12px;
 }
-.product-image .tag {
+/* Sale badge left */
+.sale-badge {
   position: absolute;
   top: 10px;
   left: 10px;
+  background: red;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+/* New badge right */
+.product-image .tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   background: black;
   color: white;
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 12px;
 }
-/* Quick View Arrow */
+/* Quick View Arrow under New badge */
 .quick-view-btn {
   position: absolute;
-  bottom: 10px;
+  top: 45px; /* just under the New badge */
   right: 10px;
   background: white;
   border: 1px solid #ddd;
@@ -137,7 +153,7 @@
   width: 32px;
   height: 32px;
   font-size: 16px;
-  transform: rotate(45deg); /* 45° angle */
+  transform: rotate(45deg); /* 45° */
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -201,14 +217,14 @@
   margin: auto;
   padding: 20px;
   border-radius: 16px;
-  width: 400px;
+  width: 500px;
   text-align: center;
   position: relative;
 }
 .quick-view-body img {
   width: 100%;
-  height: 250px;
-  object-fit: contain; /* Complete image visible */
+  height: 280px;
+  object-fit: contain; /* complete image visible */
   margin-bottom: 15px;
 }
 .close-modal {
@@ -226,6 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const qvImage = document.getElementById("qv-image");
   const qvTitle = document.getElementById("qv-title");
   const qvPrice = document.getElementById("qv-price");
+  const qvDesc = document.getElementById("qv-description");
   const qvForm = document.getElementById("qv-form");
   const qvVariantId = document.getElementById("qv-variant-id");
 
@@ -238,6 +255,7 @@ document.addEventListener("DOMContentLoaded", function() {
           qvImage.src = product.featured_image;
           qvTitle.textContent = product.title;
           qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
+          qvDesc.innerHTML = product.description;
           qvVariantId.value = product.variants[0].id;
           modal.style.display = "block";
         });
@@ -278,6 +296,12 @@ document.addEventListener("DOMContentLoaded", function() {
       "type": "checkbox",
       "id": "show_badge",
       "label": "Show 'New' Badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show 'Sale' Badge",
       "default": true
     }
   ],
