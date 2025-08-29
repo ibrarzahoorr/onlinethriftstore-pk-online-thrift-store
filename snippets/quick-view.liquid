@@ -1,0 +1,69 @@
+<div id="quickViewModal" class="quick-view-modal">
+  <div class="quick-view-content">
+    <span class="close-modal">&times;</span>
+    <div class="quick-view-body">
+      <img id="qv-image" src="" alt="Product Image">
+      <h3 id="qv-title"></h3>
+      <p id="qv-price"></p>
+      <div id="qv-description"></div>
+      <button type="button" id="qv-add-to-cart" class="add-to-cart-btn">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.quick-view-modal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); }
+.quick-view-content { background:#fff; margin:auto; padding:20px; border-radius:16px; width:500px; text-align:center; position:relative; top:100px; }
+.quick-view-body img { width:100%; height:280px; object-fit:contain; margin-bottom:15px; }
+.close-modal { position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const modal = document.getElementById("quickViewModal");
+  const closeBtn = modal.querySelector(".close-modal");
+  const qvImage = document.getElementById("qv-image");
+  const qvTitle = document.getElementById("qv-title");
+  const qvPrice = document.getElementById("qv-price");
+  const qvDesc = document.getElementById("qv-description");
+  const qvAddToCart = document.getElementById("qv-add-to-cart");
+  let currentVariantId = null;
+
+  // Trigger buttons
+  document.querySelectorAll(".quick-view-btn").forEach(btn => {
+    btn.addEventListener("click", function(){
+      const handle = this.dataset.productHandle;
+      fetch(`/products/${handle}.js`)
+        .then(res => res.json())
+        .then(product => {
+          qvImage.src = product.featured_image;
+          qvTitle.textContent = product.title;
+          qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
+          qvDesc.innerHTML = product.description;
+          currentVariantId = product.variants[0].id;
+          modal.style.display = "block";
+        });
+    });
+  });
+
+  qvAddToCart.addEventListener("click", function(){
+    fetch("/cart/add.js", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ id: currentVariantId, quantity: 1 })
+    }).then(() => {
+      modal.style.display = "none";
+      // cart count update
+      fetch("/cart.js")
+        .then(res => res.json())
+        .then(cart => {
+          const el = document.querySelector(".cart-count");
+          if(el) el.textContent = cart.item_count;
+        });
+    });
+  });
+
+  closeBtn.addEventListener("click", () => modal.style.display="none");
+  window.addEventListener("click", e => { if(e.target==modal) modal.style.display="none"; });
+});
+</script>
