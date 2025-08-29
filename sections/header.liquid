@@ -51,6 +51,18 @@
   .menu-banner img:hover {
     transform: scale(1.1);
   }
+
+  /* ✅ Force header icons to always be visible */
+  .header__icons {
+    display: flex !important;
+    align-items: center;
+    visibility: visible !important;
+    opacity: 1 !important;
+    gap: 10px;
+  }
+  .header__icon {
+    display: inline-flex !important;
+  }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
@@ -94,11 +106,13 @@
     <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
+
       {% if shop.customer_accounts_enabled %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
+
       <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
         <span class="svg-wrapper">
           {% if cart == empty %}
@@ -107,9 +121,9 @@
             {{ 'icon-cart.svg' | inline_asset_content }}
           {% endif %}
         </span>
-        {% if cart != empty %}
-          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
-        {% endif %}
+        <div class="cart-count-bubble">
+          <span>{{ cart.item_count }}</span>
+        </div>
       </a>
     </div>
   </header>
