@@ -14,8 +14,8 @@
     font-size: 16px !important;
     font-weight: 500 !important;
     letter-spacing: 0.5px;
-    text-transform: capitalize; /* Hamesha Aise: "Asdf Mnb" */
-    color: #111 !important; /* Modern dark shade */
+    text-transform: capitalize;
+    color: #111 !important;
   }
 
   /* Full width header - no margins */
@@ -49,8 +49,17 @@
   .menu-banner img:hover {
     transform: scale(1.1);
   }
-</style>
 
+  /* Logo position classes */
+  .header__heading--left   { justify-content: flex-start; text-align: left; display:flex; }
+  .header__heading--center { justify-content: center; text-align: center; display:flex; }
+  .header__heading--right  { justify-content: flex-end; text-align: right; display:flex; }
+
+  /* Icons position classes */
+  .header__icons--left   { justify-content: flex-start; display:flex; gap:10px; }
+  .header__icons--center { justify-content: center; display:flex; gap:10px; }
+  .header__icons--right  { justify-content: flex-end; display:flex; gap:10px; }
+</style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
@@ -67,14 +76,14 @@
   {% endif %}
   class="header-wrapper color-{{ section.settings.color_scheme }}{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
-  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
+  <header class="header page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
     
     {%- if section.settings.menu != blank -%}
       {% render 'header-drawer' %}
     {%- endif -%}
 
     <!-- Logo -->
-    <div class="header__heading">
+    <div class="header__heading header__heading--{{ section.settings.logo_position }}">
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
         {% if settings.logo != blank %}
           <div class="header__heading-logo-wrapper">
@@ -85,26 +94,33 @@
         {% endif %}
       </a>
     </div>
+
     <!-- Icons -->
-    <div class="header__icons">
-      {% render 'header-search', input_id: 'Search-In-Modal' %}
-      {% if shop.customer_accounts_enabled %}
+    <div class="header__icons header__icons--{{ section.settings.icons_position }}">
+      {% if section.settings.show_search %}
+        {% render 'header-search', input_id: 'Search-In-Modal' %}
+      {% endif %}
+
+      {% if section.settings.show_account and shop.customer_accounts_enabled %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
-        <span class="svg-wrapper">
-          {% if cart == empty %}
-            {{ 'icon-cart-empty.svg' | inline_asset_content }}
-          {% else %}
-            {{ 'icon-cart.svg' | inline_asset_content }}
+
+      {% if section.settings.show_cart %}
+        <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
+          <span class="svg-wrapper">
+            {% if cart == empty %}
+              {{ 'icon-cart-empty.svg' | inline_asset_content }}
+            {% else %}
+              {{ 'icon-cart.svg' | inline_asset_content }}
+            {% endif %}
+          </span>
+          {% if cart != empty %}
+            <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
           {% endif %}
-        </span>
-        {% if cart != empty %}
-          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
-        {% endif %}
-      </a>
+        </a>
+      {% endif %}
     </div>
   </header>
 </{{ header_tag }}>
@@ -155,6 +171,46 @@
       "id": "color_scheme",
       "default": "scheme-1",
       "label": "Color scheme"
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo Position",
+      "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show Search Icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "Show Account Icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart",
+      "label": "Show Cart Icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icons_position",
+      "label": "Icons Position",
+      "default": "right",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
     }
   ],
   "blocks": [
