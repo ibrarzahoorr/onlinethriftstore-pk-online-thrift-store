@@ -11,7 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-  /* Modern Elegant Typography */
   body, .header, .list-menu, .menu-banner, .header__icons, .header__heading-link {
     font-family: 'Poppins', sans-serif !important;
     font-size: 16px !important;
@@ -20,14 +19,12 @@
     color: #111 !important;
   }
 
-  /* Full width header - no margins */
   .header, .page-width {
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
-  /* Remove menu dots */
   .list-menu,
   .list-menu li {
     list-style: none !important;
@@ -35,7 +32,6 @@
     padding: 0;
   }
 
-  /* Collection banner images under menu */
   .menu-banner {
     margin-top: 0.5rem;
     text-align: center;
@@ -51,6 +47,21 @@
   .menu-banner img:hover {
     transform: scale(1.1);
   }
+
+  /* Logo alignment settings */
+  .logo-left { text-align: left; }
+  .logo-center { text-align: center; }
+  .logo-right { text-align: right; }
+
+  .header__heading-logo {
+    max-width: {{ section.settings.logo_width | default: 150 }}px;
+    height: auto;
+  }
+
+  /* Menu alignment */
+  .menu-left { text-align: left; }
+  .menu-center { text-align: center; }
+  .menu-right { text-align: right; }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
@@ -68,10 +79,17 @@
   {% endif %}
   class="header-wrapper color-{{ section.settings.color_scheme }}{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
-  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
+  <header class="header page-width 
+    logo-{{ section.settings.logo_position }} 
+    menu-{{ section.settings.menu_position }}
+    {% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}
+    {% if section.settings.menu != blank %} header--has-menu{% endif %}
+  ">
     
     {%- if section.settings.menu != blank -%}
-      {% render 'header-drawer' %}
+      {% if section.settings.menu_type_desktop == 'drawer' %}
+        {% render 'header-drawer' %}
+      {% endif %}
     {%- endif -%}
 
     <!-- Logo -->
@@ -79,11 +97,11 @@
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
         {% if section.settings.logo_image != blank %}
           <div class="header__heading-logo-wrapper">
-            {{ section.settings.logo_image | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+            {{ section.settings.logo_image | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
           </div>
         {% elsif settings.logo != blank %}
           <div class="header__heading-logo-wrapper">
-            {{ settings.logo | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+            {{ settings.logo | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
           </div>
         {% else %}
           <span class="h2">{{ shop.name }}</span>
@@ -93,24 +111,30 @@
 
     <!-- Icons -->
     <div class="header__icons">
-      {% render 'header-search', input_id: 'Search-In-Modal' %}
-      {% if shop.customer_accounts_enabled %}
+      {% if section.settings.show_search_icon %}
+        {% render 'header-search', input_id: 'Search-In-Modal' %}
+      {% endif %}
+      
+      {% if shop.customer_accounts_enabled and section.settings.show_account_icon %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
-        <span class="svg-wrapper">
-          {% if cart == empty %}
-            {{ 'icon-cart-empty.svg' | inline_asset_content }}
-          {% else %}
-            {{ 'icon-cart.svg' | inline_asset_content }}
+      
+      {% if section.settings.show_cart_icon %}
+        <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
+          <span class="svg-wrapper">
+            {% if cart == empty %}
+              {{ 'icon-cart-empty.svg' | inline_asset_content }}
+            {% else %}
+              {{ 'icon-cart.svg' | inline_asset_content }}
+            {% endif %}
+          </span>
+          {% if cart != empty %}
+            <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
           {% endif %}
-        </span>
-        {% if cart != empty %}
-          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
-        {% endif %}
-      </a>
+        </a>
+      {% endif %}
     </div>
   </header>
 </{{ header_tag }}>
@@ -122,7 +146,7 @@
   -%}
 {%- endif -%}
 
-<!-- ✅ Force CamelCase Script -->
+<!-- ✅ Force CamelCase -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     function toCamelCase(str) {
@@ -152,13 +176,45 @@
       "type": "image_picker",
       "id": "logo_image",
       "label": "Custom Logo",
-      "info": "Upload or choose a logo for the header"
+      "info": "Upload or choose a logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo Width",
+      "default": 150
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left",
+      "label": "Logo Position"
     },
     {
       "type": "link_list",
       "id": "menu",
       "default": "main-menu",
       "label": "Menu"
+    },
+    {
+      "type": "select",
+      "id": "menu_position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "right",
+      "label": "Menu Position"
     },
     {
       "type": "select",
@@ -169,7 +225,7 @@
         { "value": "drawer", "label": "Drawer" }
       ],
       "default": "dropdown",
-      "label": "Desktop menu type"
+      "label": "Desktop Menu Type"
     },
     {
       "type": "select",
@@ -181,7 +237,25 @@
         { "value": "reduce-logo-size", "label": "Shrink on Scroll" }
       ],
       "default": "on-scroll-up",
-      "label": "Sticky header type"
+      "label": "Sticky Header Type"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search_icon",
+      "default": true,
+      "label": "Show Search Icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account_icon",
+      "default": true,
+      "label": "Show Account Icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_icon",
+      "default": true,
+      "label": "Show Cart Icon"
     },
     {
       "type": "color_scheme",
