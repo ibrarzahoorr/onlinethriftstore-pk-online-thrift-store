@@ -23,21 +23,42 @@
     padding: 0;
   }
 
-  /* Collection banner images under menu */
+  /* Menu links */
+  .list-menu li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    font-size: 16px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Collection banner images under/with menu */
   .menu-banner {
-    margin-top: 0.5rem;
-    text-align: center;
+    margin-left: 10px;
   }
   .menu-banner img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
     object-fit: cover;
-    border: 2px solid #000;
+    border: 1px solid #ddd;
     transition: transform 0.3s ease;
   }
   .menu-banner img:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
+  }
+
+  /* Mobile friendly */
+  @media(max-width: 768px) {
+    .list-menu li a {
+      font-size: 14px;
+    }
+    .menu-banner img {
+      width: 32px;
+      height: 32px;
+    }
   }
 </style>
 
@@ -74,6 +95,7 @@
         {% endif %}
       </a>
     </div>
+
     <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
@@ -97,6 +119,30 @@
     </div>
   </header>
 </{{ header_tag }}>
+
+<!-- 📌 Menu Rendering with Banner Images -->
+{% if section.settings.menu != blank %}
+  <nav class="menu-navigation">
+    <ul class="list-menu">
+      {% for link in linklists[section.settings.menu].links %}
+        <li>
+          <a href="{{ link.url }}">
+            {{ link.title }}
+            {% for block in section.blocks %}
+              {% if block.type == 'collection_banner' and block.settings.menu_item == link.title %}
+                <span class="menu-banner">
+                  <img 
+                    src="{{ block.settings.image | image_url: width: 100 }}" 
+                    alt="{{ block.settings.alt | escape }}">
+                </span>
+              {% endif %}
+            {% endfor %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}
 
 {%- if settings.cart_type == 'notification' -%}
   {%- render 'cart-notification',
