@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts for Modern Look -->
+<!-- Google Fonts for Modern Elegant Look -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -51,43 +51,37 @@
   .menu-banner img:hover {
     transform: scale(1.1);
   }
-
-  /* ✅ Force header icons to always be visible */
-  .header__icons {
-    display: flex !important;
-    align-items: center;
-    visibility: visible !important;
-    opacity: 1 !important;
-    gap: 10px;
-  }
-  .header__icon {
-    display: inline-flex !important;
-  }
-
-  /* ✅ Always black icons */
-  .header__icon svg,
-  .header__icons .svg-wrapper svg {
-    fill: #000 !important;
-    stroke: #000 !important;
-    color: #000 !important;
-  }
-
-  /* ✅ Black cart counter bubble */
-  .cart-count-bubble {
-    background: transparent !important;
-    border: 2px solid #000 !important;
-    color: #000 !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    min-width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    margin-left: 3px;
-  }
 </style>
+
+<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
+
+<script>
+  // ✅ Force CamelCase for ALL menu/header texts
+  document.addEventListener("DOMContentLoaded", function () {
+    function toCamelCase(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    // Target ALL visible text in menu, header, navigation
+    const selectors = [
+      ".list-menu li a",
+      ".list-menu li span",
+      ".header__heading-link",
+      ".menu-banner",
+      ".header__icons",
+      ".header__heading"
+    ];
+
+    document.querySelectorAll(selectors.join(",")).forEach(el => {
+      if (el.innerText && el.innerText.trim() !== "") {
+        el.innerText = toCamelCase(el.innerText);
+      }
+    });
+  });
+</script>
+
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
@@ -113,11 +107,7 @@
     <!-- Logo -->
     <div class="header__heading">
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {% if section.settings.logo_image != blank %}
-          <div class="header__heading-logo-wrapper">
-            {{ section.settings.logo_image | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-          </div>
-        {% elsif settings.logo != blank %}
+        {% if settings.logo != blank %}
           <div class="header__heading-logo-wrapper">
             {{ settings.logo | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
           </div>
@@ -126,17 +116,14 @@
         {% endif %}
       </a>
     </div>
-
     <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
-
       {% if shop.customer_accounts_enabled %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-
       <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
         <span class="svg-wrapper">
           {% if cart == empty %}
@@ -145,9 +132,9 @@
             {{ 'icon-cart.svg' | inline_asset_content }}
           {% endif %}
         </span>
-        <div class="cart-count-bubble">
-          <span>{{ cart.item_count }}</span>
-        </div>
+        {% if cart != empty %}
+          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
+        {% endif %}
       </a>
     </div>
   </header>
@@ -160,38 +147,11 @@
   -%}
 {%- endif -%}
 
-<!-- ✅ Force CamelCase Script -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    function toCamelCase(str) {
-      return str
-        .toLowerCase()
-        .replace(/\b\w/g, char => char.toUpperCase());
-    }
-
-    const elements = document.querySelectorAll(
-      ".list-menu li, .list-menu li a, .header__heading-link, .menu-banner, .header__icons, .header__heading"
-    );
-
-    elements.forEach(el => {
-      if (el.innerText && el.innerText.trim() !== "") {
-        el.innerText = toCamelCase(el.innerText);
-      }
-    });
-  });
-</script>
-
 {% schema %}
 {
   "name": "Advanced Header",
   "class": "section-header",
   "settings": [
-    {
-      "type": "image_picker",
-      "id": "logo_image",
-      "label": "Custom Logo",
-      "info": "Upload or choose a logo for the header"
-    },
     {
       "type": "link_list",
       "id": "menu",
