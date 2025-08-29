@@ -3,204 +3,78 @@
 <link rel="stylesheet" href="{{ 'component-menu-drawer.css' | asset_url }}" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="{{ 'component-cart-notification.css' | asset_url }}" media="print" onload="this.media='all'">
 
+{%- if settings.predictive_search_enabled -%}
+  <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
+{%- if section.settings.menu_type_desktop == 'mega' -%}
+  <link rel="stylesheet" href="{{ 'component-mega-menu.css' | asset_url }}" media="print" onload="this.media='all'">
+{%- endif -%}
+
 <style>
-  :root {
-    --header-bg: rgba(255, 255, 255, 0.95);
-    --header-text: #000;
-    --header-accent: #000;
-    --font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
-  }
+  /* --- Original Dawn header styles stay same --- */
 
-  .header-wrapper {
-    backdrop-filter: blur(14px);
-    background: var(--header-bg);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    transition: all 0.3s ease-in-out;
-    font-family: var(--font-family);
-    position: relative;
-    z-index: 1000;
-  }
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 2rem;
-    color: var(--header-text);
-  }
-
-  /* Sticky shrink */
-  .scrolled-past-header .header {
-    padding: 8px 2rem !important;
-  }
-  .scrolled-past-header .header__heading-logo-wrapper {
-    transform: scale(0.85);
-    transition: transform 0.3s ease;
-  }
-
-  /* Desktop Nav */
-  .main-nav { display: none; }
-  @media(min-width: 991px) {
-    .main-nav { display: block; }
-    .list-menu {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      margin: 0;
-      padding: 0;
-    }
-    .list-menu__item--link {
-      font-weight: 500;
-      font-size: 1rem;
-      text-decoration: none;
-      color: var(--header-text);
-      position: relative;
-      transition: color 0.3s ease;
-    }
-    .list-menu__item--link:hover {
-      color: var(--header-accent);
-    }
-    .list-menu__item--link::after {
-      content: "";
-      position: absolute;
-      bottom: -6px;
-      left: 0;
-      height: 2px;
-      width: 0%;
-      background: var(--header-accent);
-      transition: width 0.3s ease;
-    }
-    .list-menu__item--link:hover::after { width: 100%; }
-  }
-
-  /* ===== MOBILE HEADER FIX ===== */
+  /* === Mobile Header Fix === */
   @media(max-width: 990px) {
-    .main-nav { display: none !important; }
-
-    .header-mobile {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      width: 100%;
-      padding: 12px 1rem;
     }
 
-    .menu-toggle {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      cursor: pointer;
-      width: 25px;
-    }
-    .menu-toggle span {
-      height: 2px;
-      background: var(--header-text);
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
-
-    .header__logo-mobile {
+    /* Make logo center */
+    .header__heading {
       flex: 1;
       text-align: center;
     }
+    .header__heading-link {
+      display: inline-block;
+    }
 
-    /* Drawer + Overlay */
-    .drawer-overlay {
-      position: fixed;
-      inset: 0;
+    /* Drawer trigger (hamburger) left */
+    header-drawer {
+      order: -1;
+    }
+
+    /* Icons on right */
+    .header__icons {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    /* Drawer overlay */
+    .menu-drawer__overlay {
       background: rgba(0,0,0,0.5);
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s ease;
-      z-index: 9998;
+      transition: opacity 0.3s ease;
     }
-    .drawer-overlay.active {
+    .menu-drawer[open] ~ .menu-drawer__overlay {
       opacity: 1;
       visibility: visible;
     }
-    .drawer {
-      position: fixed;
-      top: 0; left: -100%;
-      width: 80%;
-      height: 100%;
-      background: #fff;
-      padding: 2rem 1.5rem;
-      transition: left 0.4s ease;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .drawer.open { left: 0; }
-    .drawer a {
-      font-size: 1.1rem;
-      text-decoration: none;
-      color: #000;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-    .drawer a:hover { color: var(--header-accent); }
-    .drawer-close {
-      align-self: flex-end;
-      font-size: 1.5rem;
+
+    /* Drawer close button style */
+    .menu-drawer__close-button {
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: none;
+      background: none;
       cursor: pointer;
       margin-bottom: 1rem;
     }
   }
-
-  /* Icons */
-  .header__icons {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-  .header__icon {
-    border-radius: 50%;
-    padding: 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
-  .header__icon:hover {
-    background: rgba(0,0,0,0.08);
-    transform: scale(1.1);
-  }
-
-  /* Search expand */
-  .header__icons .header-search input {
-    width: 0;
-    opacity: 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 0.4rem 0.6rem;
-    transition: width 0.4s ease, opacity 0.3s ease;
-  }
-  .header__icons .header-search input:focus {
-    width: 160px;
-    opacity: 1;
-  }
 </style>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function(){
-    const toggle = document.querySelector(".menu-toggle");
-    const drawer = document.querySelector(".drawer");
-    const overlay = document.querySelector(".drawer-overlay");
-    const closeBtn = document.querySelector(".drawer-close");
+<script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
-    function closeDrawer() {
-      drawer.classList.remove("open");
-      overlay.classList.remove("active");
-    }
-    toggle?.addEventListener("click", ()=>{
-      drawer.classList.add("open");
-      overlay.classList.add("active");
-    });
-    closeBtn?.addEventListener("click", closeDrawer);
-    overlay?.addEventListener("click", closeDrawer);
-  });
-</script>
+{%- liquid
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app_block = true
+    endif
+  endfor
+-%}
 
 {% liquid
   assign header_tag = 'div'
@@ -213,41 +87,36 @@
   {% if header_tag == 'sticky-header' %}
     data-sticky-type="{{ section.settings.sticky_header_type }}"
   {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }}"
+  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
-  <!-- === Desktop Header === -->
-  <header class="header large-show">
-    <!-- Logo -->
-    <a href="{{ routes.root_url }}" class="header__heading-link">
-      {% if settings.logo != blank %}
-        <div class="header__heading-logo-wrapper">
-          {{ settings.logo | image_url: width: 400 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-        </div>
-      {% else %}
-        <span class="h2">{{ shop.name }}</span>
-      {% endif %}
-    </a>
+  <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}{% if has_app_block %} header--has-app{% endif %}{% if shop.customer_accounts_enabled %} header--has-account{% endif %}">
+    
+    {%- if section.settings.menu != blank -%}
+      {% render 'header-drawer' %}
+    {%- endif -%}
 
-    <!-- Menu -->
-    {% if section.settings.menu != blank %}
-      <nav class="main-nav">
-        <ul class="list-menu">
-          {% for link in linklists[section.settings.menu].links %}
-            <li><a href="{{ link.url }}" class="list-menu__item--link">{{ link.title }}</a></li>
-          {% endfor %}
-        </ul>
-      </nav>
-    {% endif %}
+    <!-- Logo -->
+    <div class="header__heading">
+      <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
+        {% if settings.logo != blank %}
+          <div class="header__heading-logo-wrapper">
+            {{ settings.logo | image_url: width: 300 | image_tag: class: 'header__heading-logo', alt: shop.name }}
+          </div>
+        {% else %}
+          <span class="h2">{{ shop.name }}</span>
+        {% endif %}
+      </a>
+    </div>
 
     <!-- Icons -->
     <div class="header__icons">
       {% render 'header-search', input_id: 'Search-In-Modal' %}
       {% if shop.customer_accounts_enabled %}
-        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon">
+        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon" id="cart-icon-bubble">
+      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
         <span class="svg-wrapper">
           {% if cart == empty %}
             {{ 'icon-cart-empty.svg' | inline_asset_content }}
@@ -261,59 +130,8 @@
       </a>
     </div>
   </header>
-
-  <!-- === Mobile Header === -->
-  <div class="header-mobile small-show medium-show">
-    <!-- Left: Hamburger -->
-    <div class="menu-toggle">
-      <span></span><span></span><span></span>
-    </div>
-
-    <!-- Center: Logo -->
-    <div class="header__logo-mobile">
-      <a href="{{ routes.root_url }}">
-        {% if settings.logo != blank %}
-          {{ settings.logo | image_url: width: 160 | image_tag: class: 'header__heading-logo', alt: shop.name }}
-        {% else %}
-          <span class="h2">{{ shop.name }}</span>
-        {% endif %}
-      </a>
-    </div>
-
-    <!-- Right: Icons -->
-    <div class="header__icons">
-      {% render 'header-search', input_id: 'Search-In-Modal-Mobile' %}
-      {% if shop.customer_accounts_enabled %}
-        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon">
-          <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
-        </a>
-      {% endif %}
-      <a href="{{ routes.cart_url }}" class="header__icon" id="cart-icon-bubble-mobile">
-        <span class="svg-wrapper">
-          {% if cart == empty %}
-            {{ 'icon-cart-empty.svg' | inline_asset_content }}
-          {% else %}
-            {{ 'icon-cart.svg' | inline_asset_content }}
-          {% endif %}
-        </span>
-        {% if cart != empty %}
-          <div class="cart-count-bubble"><span>{{ cart.item_count }}</span></div>
-        {% endif %}
-      </a>
-    </div>
-  </div>
-
-  <!-- Mobile Drawer -->
-  <div class="drawer">
-    <div class="drawer-close">✕</div>
-    {% if section.settings.menu != blank %}
-      {% for link in linklists[section.settings.menu].links %}
-        <a href="{{ link.url }}">{{ link.title }}</a>
-      {% endfor %}
-    {% endif %}
-  </div>
-  <div class="drawer-overlay"></div>
 </{{ header_tag }}>
+
 
 {% schema %}
 {
