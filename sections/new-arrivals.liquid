@@ -1,26 +1,17 @@
 {% comment %}
-  Section: Products Slider / Grid with Quick View
+  Section: New Arrivals with Sale Badge + Quick View
 {% endcomment %}
 
-<section class="custom-products">
+<section class="new-arrivals">
   <div class="page-width">
     {% if section.settings.heading != blank %}
       <h2 class="section-title">{{ section.settings.heading }}</h2>
     {% endif %}
 
-    {% assign collection = collections[section.settings.collection] %}
-    {% if collection != blank %}
-      <div class="products-wrapper {% if section.settings.display_mode == 'slider' %}slider{% endif %}">
-        {% case section.settings.display_mode %}
-          {% when 'all' %}
-            {% assign products = collection.products %}
-          {% when 'custom' %}
-            {% assign products = collection.products | slice: 0, section.settings.products_limit %}
-          {% else %}
-            {% assign products = collection.products %}
-        {% endcase %}
-
-        {% for product in products %}
+    <div class="new-arrivals-grid">
+      {% assign collection = collections[section.settings.collection] %}
+      {% if collection != blank %}
+        {% for product in collection.products limit: section.settings.products_limit %}
           <div class="product-card">
             <div class="product-image">
               <img 
@@ -29,13 +20,17 @@
                 class="fixed-image"
               >
 
+              <!-- Sale badge (toggleable) -->
               {% if section.settings.show_sale_badge and product.compare_at_price > product.price %}
                 <span class="sale-badge">Sale</span>
               {% endif %}
+
+              <!-- New badge -->
               {% if section.settings.show_badge %}
                 <span class="tag">New</span>
               {% endif %}
 
+              <!-- Quick View Arrow under New badge -->
               <button 
                 type="button" 
                 class="quick-view-btn" 
@@ -55,19 +50,18 @@
                 {% endif %}
               </p>
 
-              <button 
-                type="button" 
-                class="add-to-cart-btn" 
-                data-variant-id="{{ product.variants.first.id }}">
-                Add to Cart
-              </button>
+              <!-- Add to Cart -->
+              <form method="post" action="/cart/add" class="add-to-cart-form">
+                <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+              </form>
             </div>
           </div>
         {% endfor %}
-      </div>
-    {% else %}
-      <p>No products found.</p>
-    {% endif %}
+      {% else %}
+        <p>No products found.</p>
+      {% endif %}
+    </div>
   </div>
 </section>
 
@@ -80,33 +74,165 @@
       <h3 id="qv-title"></h3>
       <p id="qv-price"></p>
       <div id="qv-description"></div>
-      <button type="button" id="qv-add-to-cart" class="add-to-cart-btn">Add to Cart</button>
+      <form method="post" action="/cart/add" id="qv-form">
+        <input type="hidden" name="id" id="qv-variant-id">
+        <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+      </form>
     </div>
   </div>
 </div>
 
 <style>
-.section-title { font-size: 28px; font-weight: bold; margin-bottom: 30px; }
-.products-wrapper { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 20px; }
-.products-wrapper.slider { display: flex; overflow-x: auto; gap: 20px; scroll-snap-type: x mandatory; }
-.products-wrapper.slider .product-card { flex: 0 0 220px; scroll-snap-align: start; }
+.new-arrivals {
+  background: #f9f9f9;
+  padding: 40px 20px;
+}
+.section-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+.new-arrivals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+}
+.product-image {
+  position: relative;
+  text-align: center;
+}
+.fixed-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+/* Sale badge left */
+.sale-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: red;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+/* New badge right */
+.product-image .tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: black;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+/* Quick View Arrow under New badge */
+.quick-view-btn {
+  position: absolute;
+  top: 45px; /* just under the New badge */
+  right: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  transform: rotate(45deg); /* 45° */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.quick-view-btn:hover {
+  background: black;
+  color: white;
+}
 
-.product-card { background: #fff; border-radius: 16px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: transform 0.2s; }
-.product-card:hover { transform: translateY(-4px); }
+.product-info {
+  text-align: center;
+  margin-top: 10px;
+}
+.product-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.product-price {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 10px;
+}
+.product-price .compare-price {
+  text-decoration: line-through;
+  margin-left: 6px;
+  font-size: 13px;
+  color: #999;
+}
+.sale-price {
+  color: #d32f2f;
+  font-weight: bold;
+}
+.add-to-cart-btn {
+  width: 100%;
+  background: black;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.add-to-cart-btn:hover {
+  background: #333;
+}
 
-.fixed-image { width: 100%; height: 250px; object-fit: cover; border-radius: 12px; }
-.sale-badge { position: absolute; top: 10px; left: 10px; background: red; color: #fff; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
-.tag { position: absolute; top: 10px; right: 10px; background: black; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
-.quick-view-btn { position: absolute; top: 45px; right: 10px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; transform: rotate(45deg); cursor: pointer; }
-.quick-view-btn:hover { background: black; color: white; }
-
-.add-to-cart-btn { width: 100%; background: black; color: #fff; padding: 10px; border: none; border-radius: 12px; cursor: pointer; }
-.add-to-cart-btn:hover { background: #333; }
-
-.quick-view-modal { display: none; position: fixed; z-index: 9999; padding-top: 100px; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-.quick-view-content { background: #fff; margin: auto; padding: 20px; border-radius: 16px; width: 500px; text-align: center; position: relative; }
-.quick-view-body img { width: 100%; height: 280px; object-fit: contain; margin-bottom: 15px; }
-.close-modal { position: absolute; top: 10px; right: 15px; font-size: 22px; cursor: pointer; }
+/* Quick View Modal */
+.quick-view-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  padding-top: 100px;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+}
+.quick-view-content {
+  background: #fff;
+  margin: auto;
+  padding: 20px;
+  border-radius: 16px;
+  width: 500px;
+  text-align: center;
+  position: relative;
+}
+.quick-view-body img {
+  width: 100%;
+  height: 280px;
+  object-fit: contain; /* complete image visible */
+  margin-bottom: 15px;
+}
+.close-modal {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+}
 </style>
 
 <script>
@@ -117,10 +243,9 @@ document.addEventListener("DOMContentLoaded", function() {
   const qvTitle = document.getElementById("qv-title");
   const qvPrice = document.getElementById("qv-price");
   const qvDesc = document.getElementById("qv-description");
-  const qvAddToCart = document.getElementById("qv-add-to-cart");
-  let currentVariantId = null;
+  const qvForm = document.getElementById("qv-form");
+  const qvVariantId = document.getElementById("qv-variant-id");
 
-  // Quick view open
   document.querySelectorAll(".quick-view-btn").forEach(btn => {
     btn.addEventListener("click", function() {
       const handle = this.dataset.productHandle;
@@ -131,64 +256,60 @@ document.addEventListener("DOMContentLoaded", function() {
           qvTitle.textContent = product.title;
           qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
           qvDesc.innerHTML = product.description;
-          currentVariantId = product.variants[0].id;
+          qvVariantId.value = product.variants[0].id;
           modal.style.display = "block";
         });
     });
   });
 
   closeBtn.addEventListener("click", () => modal.style.display = "none");
-  window.addEventListener("click", e => { if (e.target == modal) modal.style.display = "none"; });
-
-  // Add to cart buttons (grid + popup)
-  function addToCart(variantId) {
-    fetch("/cart/add.js", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: variantId, quantity: 1 })
-    })
-    .then(res => res.json())
-    .then(() => updateCartCount());
-  }
-
-  document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const variantId = this.dataset.variantId;
-      addToCart(variantId);
-    });
+  window.addEventListener("click", e => {
+    if (e.target == modal) modal.style.display = "none";
   });
-
-  qvAddToCart.addEventListener("click", () => { addToCart(currentVariantId); });
-
-  function updateCartCount() {
-    fetch("/cart.js")
-      .then(res => res.json())
-      .then(cart => {
-        const el = document.querySelector(".cart-count");
-        if (el) el.textContent = cart.item_count;
-      });
-  }
 });
 </script>
 
 {% schema %}
 {
-  "name": "Products with Quick View",
+  "name": "New Arrivals",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Section Heading", "default": "Featured Products" },
-    { "type": "collection", "id": "collection", "label": "Select Collection" },
-    { "type": "select", "id": "display_mode", "label": "Display Mode", "options": [
-        { "value": "slider", "label": "Slider" },
-        { "value": "all", "label": "All Products" },
-        { "value": "custom", "label": "Custom Limit" }
-      ], "default": "custom"
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Heading",
+      "default": "New Arrivals"
     },
-    { "type": "range", "id": "products_limit", "label": "Number of Products (Custom mode only)", "min": 2, "max": 20, "default": 6 },
-    { "type": "checkbox", "id": "show_badge", "label": "Show 'New' Badge", "default": true },
-    { "type": "checkbox", "id": "show_sale_badge", "label": "Show 'Sale' Badge", "default": true }
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Number of Products",
+      "min": 2,
+      "max": 12,
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show 'New' Badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show 'Sale' Badge",
+      "default": true
+    }
   ],
   "presets": [
-    { "name": "Products with Quick View", "category": "Products" }
+    {
+      "name": "New Arrivals with Quick View",
+      "category": "Products"
+    }
   ]
 }
 {% endschema %}
