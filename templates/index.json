@@ -84,7 +84,7 @@
         "collection": "block-b-test",
         "products_limit": 12,
         "show_badge": true,
-        "show_sale_badge": false
+        "show_sale_badge": true
       }
     },
     "slideshow_fD8L7N": {
