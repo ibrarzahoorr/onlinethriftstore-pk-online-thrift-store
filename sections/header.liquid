@@ -7,10 +7,6 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-{%- if section.settings.menu_type_desktop == 'mega' -%}
-  <link rel="stylesheet" href="{{ 'component-mega-menu.css' | asset_url }}" media="print" onload="this.media='all'">
-{%- endif -%}
-
 <style>
   /* Full width header - no margins */
   .header, .page-width {
@@ -23,6 +19,8 @@
   .list-menu,
   .list-menu li {
     list-style: none !important;
+    margin: 0;
+    padding: 0;
   }
 
   /* Collection banner images under menu */
@@ -56,7 +54,7 @@
   {% if header_tag == 'sticky-header' %}
     data-sticky-type="{{ section.settings.sticky_header_type }}"
   {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
+  class="header-wrapper color-{{ section.settings.color_scheme }}{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
   <header class="header header--{{ section.settings.logo_position }} header--mobile-{{ section.settings.mobile_logo_position }} page-width{% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}{% if section.settings.menu != blank %} header--has-menu{% endif %}">
     
@@ -77,9 +75,9 @@
       </a>
     </div>
 
-    <!-- Menu with banners -->
-    {% if section.settings.menu != blank %}
-      <nav class="main-nav">
+    <!-- Desktop Menu -->
+    {% if section.settings.menu != blank and section.settings.menu_type_desktop != 'drawer' %}
+      <nav class="main-nav small-hide medium-hide">
         <ul class="list-menu">
           {% for link in linklists[section.settings.menu].links %}
             <li class="list-menu__item">
@@ -122,6 +120,13 @@
   </header>
 </{{ header_tag }}>
 
+{%- if settings.cart_type == 'notification' -%}
+  {%- render 'cart-notification',
+    color_scheme: section.settings.color_scheme,
+    desktop_menu_type: section.settings.menu_type_desktop
+  -%}
+{%- endif -%}
+
 {% schema %}
 {
   "name": "Advanced Header",
@@ -132,6 +137,17 @@
       "id": "menu",
       "default": "main-menu",
       "label": "Menu"
+    },
+    {
+      "type": "select",
+      "id": "menu_type_desktop",
+      "options": [
+        { "value": "dropdown", "label": "Dropdown" },
+        { "value": "mega", "label": "Mega Menu" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "dropdown",
+      "label": "Desktop menu type"
     },
     {
       "type": "select",
@@ -160,7 +176,7 @@
         {
           "type": "text",
           "id": "menu_item",
-          "label": "Menu Item Name (must match exactly)"
+          "label": "Menu Item Name (exact match)"
         },
         {
           "type": "image_picker",
