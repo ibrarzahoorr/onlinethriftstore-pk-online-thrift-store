@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
 {%- endif -%}
 
-<!-- Google Fonts for Modern Look -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -32,97 +31,60 @@
     padding: 0;
   }
 
-  .menu-banner {
-    margin-top: 0.5rem;
-    text-align: center;
-  }
-  .menu-banner img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #000;
-    transition: transform 0.3s ease;
-  }
-  .menu-banner img:hover {
-    transform: scale(1.1);
-  }
-
-  /* Logo alignment settings */
+  /* Alignment options */
   .logo-left { text-align: left; }
   .logo-center { text-align: center; }
   .logo-right { text-align: right; }
+
+  .menu-left { justify-content: flex-start; }
+  .menu-center { justify-content: center; }
+  .menu-right { justify-content: flex-end; }
 
   .header__heading-logo {
     max-width: {{ section.settings.logo_width | default: 150 }}px;
     height: auto;
   }
-
-  /* Menu alignment */
-  .menu-left { text-align: left; }
-  .menu-center { text-align: center; }
-  .menu-right { text-align: right; }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
-{% liquid
-  assign header_tag = 'div'
-  if section.settings.sticky_header_type != 'none'
-    assign header_tag = 'sticky-header'
-  endif
-%}
-
-<{{ header_tag }}
-  {% if header_tag == 'sticky-header' %}
-    data-sticky-type="{{ section.settings.sticky_header_type }}"
-  {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }}{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
->
-  <header class="header page-width 
-    logo-{{ section.settings.logo_position }} 
-    menu-{{ section.settings.menu_position }}
-    {% if section.settings.menu_type_desktop == 'drawer' %} drawer-menu{% endif %}
-    {% if section.settings.menu != blank %} header--has-menu{% endif %}
-  ">
-    
-    {%- if section.settings.menu != blank -%}
-      {% if section.settings.menu_type_desktop == 'drawer' %}
-        {% render 'header-drawer' %}
-      {% endif %}
-    {%- endif -%}
+<sticky-header class="header-wrapper color-{{ section.settings.color_scheme }}">
+  <header class="header page-width">
 
     <!-- Logo -->
-    <div class="header__heading">
+    <div class="header__heading logo-{{ section.settings.logo_position }}">
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
         {% if section.settings.logo_image != blank %}
-          <div class="header__heading-logo-wrapper">
-            {{ section.settings.logo_image | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
-          </div>
+          {{ section.settings.logo_image | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
         {% elsif settings.logo != blank %}
-          <div class="header__heading-logo-wrapper">
-            {{ settings.logo | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
-          </div>
+          {{ settings.logo | image_url: width: section.settings.logo_width | image_tag: class: 'header__heading-logo', alt: shop.name }}
         {% else %}
           <span class="h2">{{ shop.name }}</span>
         {% endif %}
       </a>
     </div>
 
+    <!-- Menu -->
+    {% if section.settings.menu != blank %}
+      <nav class="list-menu d-flex menu-{{ section.settings.menu_position }}">
+        {% for link in linklists[section.settings.menu].links %}
+          <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+        {% endfor %}
+      </nav>
+    {% endif %}
+
     <!-- Icons -->
     <div class="header__icons">
       {% if section.settings.show_search_icon %}
         {% render 'header-search', input_id: 'Search-In-Modal' %}
       {% endif %}
-      
       {% if shop.customer_accounts_enabled and section.settings.show_account_icon %}
         <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header__icon header__icon--account">
           <span class="svg-wrapper">{{ 'icon-account.svg' | inline_asset_content }}</span>
         </a>
       {% endif %}
-      
       {% if section.settings.show_cart_icon %}
-        <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart" id="cart-icon-bubble">
+        <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart">
           <span class="svg-wrapper">
             {% if cart == empty %}
               {{ 'icon-cart-empty.svg' | inline_asset_content }}
@@ -136,17 +98,11 @@
         </a>
       {% endif %}
     </div>
+
   </header>
-</{{ header_tag }}>
+</sticky-header>
 
-{%- if settings.cart_type == 'notification' -%}
-  {%- render 'cart-notification',
-    color_scheme: section.settings.color_scheme,
-    desktop_menu_type: section.settings.menu_type_desktop
-  -%}
-{%- endif -%}
-
-<!-- ✅ Force CamelCase -->
+<!-- ✅ CamelCase Fix -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     function toCamelCase(str) {
@@ -154,13 +110,8 @@
         .toLowerCase()
         .replace(/\b\w/g, char => char.toUpperCase());
     }
-
-    const elements = document.querySelectorAll(
-      ".list-menu li, .list-menu li a, .header__heading-link, .menu-banner, .header__icons, .header__heading"
-    );
-
-    elements.forEach(el => {
-      if (el.innerText && el.innerText.trim() !== "") {
+    document.querySelectorAll("nav.list-menu li a, .header__heading-link").forEach(el => {
+      if (el.innerText.trim() !== "") {
         el.innerText = toCamelCase(el.innerText);
       }
     });
@@ -175,8 +126,7 @@
     {
       "type": "image_picker",
       "id": "logo_image",
-      "label": "Custom Logo",
-      "info": "Upload or choose a logo"
+      "label": "Custom Logo"
     },
     {
       "type": "range",
@@ -213,31 +163,8 @@
         { "value": "center", "label": "Center" },
         { "value": "right", "label": "Right" }
       ],
-      "default": "right",
+      "default": "center",
       "label": "Menu Position"
-    },
-    {
-      "type": "select",
-      "id": "menu_type_desktop",
-      "options": [
-        { "value": "dropdown", "label": "Dropdown" },
-        { "value": "mega", "label": "Mega Menu" },
-        { "value": "drawer", "label": "Drawer" }
-      ],
-      "default": "dropdown",
-      "label": "Desktop Menu Type"
-    },
-    {
-      "type": "select",
-      "id": "sticky_header_type",
-      "options": [
-        { "value": "none", "label": "None" },
-        { "value": "on-scroll-up", "label": "On Scroll Up" },
-        { "value": "always", "label": "Always Sticky" },
-        { "value": "reduce-logo-size", "label": "Shrink on Scroll" }
-      ],
-      "default": "on-scroll-up",
-      "label": "Sticky Header Type"
     },
     {
       "type": "checkbox",
@@ -262,29 +189,6 @@
       "id": "color_scheme",
       "default": "scheme-1",
       "label": "Color scheme"
-    }
-  ],
-  "blocks": [
-    {
-      "type": "collection_banner",
-      "name": "Collection Banner",
-      "settings": [
-        {
-          "type": "text",
-          "id": "menu_item",
-          "label": "Menu Item Name (exact match)"
-        },
-        {
-          "type": "image_picker",
-          "id": "image",
-          "label": "Banner Image"
-        },
-        {
-          "type": "text",
-          "id": "alt",
-          "label": "Image Alt Text"
-        }
-      ]
     }
   ]
 }
