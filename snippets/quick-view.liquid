@@ -1,3 +1,4 @@
+<!-- Quick View Modal -->
 <div id="quickViewModal" class="quick-view-modal">
   <div class="quick-view-content">
     <span class="close-modal">&times;</span>
@@ -12,10 +13,36 @@
 </div>
 
 <style>
-.quick-view-modal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); }
-.quick-view-content { background:#fff; margin:auto; padding:20px; border-radius:16px; width:500px; text-align:center; position:relative; top:100px; }
-.quick-view-body img { width:100%; height:280px; object-fit:contain; margin-bottom:15px; }
-.close-modal { position:absolute; top:10px; right:15px; font-size:22px; cursor:pointer; }
+.quick-view-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,.6);
+}
+.quick-view-content {
+  background: #fff;
+  margin: auto;
+  padding: 20px;
+  border-radius: 16px;
+  width: 500px;
+  text-align: center;
+  position: relative;
+  top: 100px;
+}
+.quick-view-body img {
+  width: 100%;
+  height: 280px;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+.close-modal {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+}
 </style>
 
 <script>
@@ -29,16 +56,16 @@ document.addEventListener("DOMContentLoaded", function(){
   const qvAddToCart = document.getElementById("qv-add-to-cart");
   let currentVariantId = null;
 
-  // Trigger buttons
+  // Quick View Open
   document.querySelectorAll(".quick-view-btn").forEach(btn => {
     btn.addEventListener("click", function(){
       const handle = this.dataset.productHandle;
       fetch(`/products/${handle}.js`)
         .then(res => res.json())
         .then(product => {
-          qvImage.src = product.featured_image;
+          qvImage.src = product.images[0]; // ✅ safe fix
           qvTitle.textContent = product.title;
-          qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
+          qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format | escape }}");
           qvDesc.innerHTML = product.description;
           currentVariantId = product.variants[0].id;
           modal.style.display = "block";
@@ -46,6 +73,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   });
 
+  // Add to Cart
   qvAddToCart.addEventListener("click", function(){
     fetch("/cart/add.js", {
       method: "POST",
@@ -53,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function(){
       body: JSON.stringify({ id: currentVariantId, quantity: 1 })
     }).then(() => {
       modal.style.display = "none";
-      // cart count update
+      // Update cart count
       fetch("/cart.js")
         .then(res => res.json())
         .then(cart => {
@@ -63,6 +91,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   });
 
+  // Close modal
   closeBtn.addEventListener("click", () => modal.style.display="none");
   window.addEventListener("click", e => { if(e.target==modal) modal.style.display="none"; });
 });

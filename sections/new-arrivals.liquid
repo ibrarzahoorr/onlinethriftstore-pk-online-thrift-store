@@ -1,5 +1,5 @@
 {% comment %}
-  Section: New Arrivals with Sale Badge + Quick View
+  Section: New Arrivals with Sale Badge + Quick View Button
 {% endcomment %}
 
 <section class="new-arrivals">
@@ -20,7 +20,7 @@
                 class="fixed-image"
               >
 
-              <!-- Sale badge (toggleable) -->
+              <!-- Sale badge -->
               {% if section.settings.show_sale_badge and product.compare_at_price > product.price %}
                 <span class="sale-badge">Sale</span>
               {% endif %}
@@ -30,7 +30,7 @@
                 <span class="tag">New</span>
               {% endif %}
 
-              <!-- Quick View Arrow under New badge -->
+              <!-- Quick View Button -->
               <button 
                 type="button" 
                 class="quick-view-btn" 
@@ -38,8 +38,6 @@
                 ➚
               </button>
             </div>
-           
-
 
             <div class="product-info">
               <h3 class="product-title">{{ product.title }}</h3>
@@ -67,23 +65,9 @@
   </div>
 </section>
 
-<!-- Quick View Modal -->
-<div id="quickViewModal" class="quick-view-modal">
-  <div class="quick-view-content">
-    <span class="close-modal">&times;</span>
-    <div class="quick-view-body">
-      <img id="qv-image" src="" alt="Product Image">
-      <h3 id="qv-title"></h3>
-      <p id="qv-price"></p>
-      <div id="qv-description"></div>
-      <form method="post" action="/cart/add" id="qv-form">
-        <input type="hidden" name="id" id="qv-variant-id">
-        <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-      </form>
-    </div>
-  </div>
-</div>
- {% render 'quick-view' %}
+<!-- Render Quick View snippet -->
+{% render 'quick-view' %}
+
 <style>
 .new-arrivals {
   background: #f9f9f9;
@@ -109,13 +93,8 @@
   display: flex;
   flex-direction: column;
 }
-.product-card:hover {
-  transform: translateY(-4px);
-}
-.product-image {
-  position: relative;
-  text-align: center;
-}
+.product-card:hover { transform: translateY(-4px); }
+.product-image { position: relative; text-align: center; }
 .fixed-image {
   width: 100%;
   height: 250px;
@@ -144,10 +123,10 @@
   padding: 4px 8px;
   border-radius: 12px;
 }
-/* Quick View Arrow under New badge */
+/* Quick View Button */
 .quick-view-btn {
   position: absolute;
-  top: 45px; /* just under the New badge */
+  top: 45px;
   right: 10px;
   background: white;
   border: 1px solid #ddd;
@@ -155,39 +134,22 @@
   width: 32px;
   height: 32px;
   font-size: 16px;
-  transform: rotate(45deg); /* 45° */
+  transform: rotate(45deg);
   cursor: pointer;
   transition: all 0.3s ease;
 }
-.quick-view-btn:hover {
-  background: black;
-  color: white;
-}
+.quick-view-btn:hover { background: black; color: white; }
 
-.product-info {
-  text-align: center;
-  margin-top: 10px;
-}
-.product-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.product-price {
-  font-size: 15px;
-  color: #333;
-  margin-bottom: 10px;
-}
+.product-info { text-align: center; margin-top: 10px; }
+.product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.product-price { font-size: 15px; color: #333; margin-bottom: 10px; }
 .product-price .compare-price {
   text-decoration: line-through;
   margin-left: 6px;
   font-size: 13px;
   color: #999;
 }
-.sale-price {
-  color: #d32f2f;
-  font-weight: bold;
-}
+.sale-price { color: #d32f2f; font-weight: bold; }
 .add-to-cart-btn {
   width: 100%;
   background: black;
@@ -200,118 +162,21 @@
   cursor: pointer;
   transition: background 0.3s ease;
 }
-.add-to-cart-btn:hover {
-  background: #333;
-}
-
-/* Quick View Modal */
-.quick-view-modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  padding-top: 100px;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.6);
-}
-.quick-view-content {
-  background: #fff;
-  margin: auto;
-  padding: 20px;
-  border-radius: 16px;
-  width: 500px;
-  text-align: center;
-  position: relative;
-}
-.quick-view-body img {
-  width: 100%;
-  height: 280px;
-  object-fit: contain; /* complete image visible */
-  margin-bottom: 15px;
-}
-.close-modal {
-  position: absolute;
-  top: 10px; right: 15px;
-  font-size: 22px;
-  cursor: pointer;
-}
+.add-to-cart-btn:hover { background: #333; }
 </style>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const modal = document.getElementById("quickViewModal");
-  const closeBtn = modal.querySelector(".close-modal");
-  const qvImage = document.getElementById("qv-image");
-  const qvTitle = document.getElementById("qv-title");
-  const qvPrice = document.getElementById("qv-price");
-  const qvDesc = document.getElementById("qv-description");
-  const qvForm = document.getElementById("qv-form");
-  const qvVariantId = document.getElementById("qv-variant-id");
-
-  document.querySelectorAll(".quick-view-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const handle = this.dataset.productHandle;
-      fetch(`/products/${handle}.js`)
-        .then(res => res.json())
-        .then(product => {
-          qvImage.src = product.featured_image;
-          qvTitle.textContent = product.title;
-          qvPrice.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
-          qvDesc.innerHTML = product.description;
-          qvVariantId.value = product.variants[0].id;
-          modal.style.display = "block";
-        });
-    });
-  });
-
-  closeBtn.addEventListener("click", () => modal.style.display = "none");
-  window.addEventListener("click", e => {
-    if (e.target == modal) modal.style.display = "none";
-  });
-});
-</script>
 
 {% schema %}
 {
   "name": "New Arrivals",
   "settings": [
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Section Heading",
-      "default": "New Arrivals"
-    },
-    {
-      "type": "collection",
-      "id": "collection",
-      "label": "Select Collection"
-    },
-    {
-      "type": "range",
-      "id": "products_limit",
-      "label": "Number of Products",
-      "min": 2,
-      "max": 12,
-      "default": 6
-    },
-    {
-      "type": "checkbox",
-      "id": "show_badge",
-      "label": "Show 'New' Badge",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_sale_badge",
-      "label": "Show 'Sale' Badge",
-      "default": true
-    }
+    { "type": "text", "id": "heading", "label": "Section Heading", "default": "New Arrivals" },
+    { "type": "collection", "id": "collection", "label": "Select Collection" },
+    { "type": "range", "id": "products_limit", "label": "Number of Products", "min": 2, "max": 12, "default": 6 },
+    { "type": "checkbox", "id": "show_badge", "label": "Show 'New' Badge", "default": true },
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Show 'Sale' Badge", "default": true }
   ],
   "presets": [
-    {
-      "name": "New Arrivals with Quick View",
-      "category": "Products"
-    }
+    { "name": "New Arrivals with Quick View", "category": "Products" }
   ]
 }
 {% endschema %}
