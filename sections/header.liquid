@@ -8,6 +8,16 @@
 {%- endif -%}
 
 <style>
+  /* Modern Elegant Font */
+  body, .header, .list-menu, .menu-banner, .header__icons, .header__heading-link {
+    font-family: 'Poppins', 'Inter', 'Roboto', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px;
+    text-transform: capitalize; /* Hamesha Aise: "Asdf Mnb" */
+    color: #111 !important; /* Modern dark shade */
+  }
+
   /* Full width header - no margins */
   .header, .page-width {
     max-width: 100% !important;
@@ -40,6 +50,7 @@
     transform: scale(1.1);
   }
 </style>
+
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
