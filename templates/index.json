@@ -82,7 +82,7 @@
       "settings": {
         "heading": "New Arrivals",
         "collection": "block-b-test",
-        "products_limit": 6,
+        "products_limit": 12,
         "show_badge": true,
         "show_sale_badge": false
       }
